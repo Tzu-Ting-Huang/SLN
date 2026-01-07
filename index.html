@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COUNT CALCULATOR</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f7f9; color: #333; line-height: 1.6; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { color: #2c3e50; text-align: center; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #444; }
+        input[type="number"], select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .btn { width: 100%; background-color: #3498db; color: white; padding: 14px; border: none; border-radius: 6px; font-size: 18px; cursor: pointer; transition: background 0.3s; }
+        .btn:hover { background-color: #2980b9; }
+        #result { margin-top: 25px; padding: 20px; border-radius: 8px; display: none; }
+        .result-box { background-color: #e8f4fd; border-left: 5px solid #3498db; }
+        .result-item { margin-bottom: 10px; font-size: 1.1em; }
+        .val { font-weight: bold; color: #e67e22; }
+        .hint { font-size: 0.85em; color: #7f8c8d; font-weight: normal; margin-left: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>COUNT CALCULATOR</h2>
+    
+    <div class="form-group">
+        <label>Mapping Max Value: <span class="hint">(101 - 74800)</span></label>
+        <input type="number" id="maxValue" placeholder="Please enter a value between 101 and 74800" step="any" min="101" max="74800">
+    </div>
+
+    <div class="form-group">
+        <label>Duration:</label>
+        <select id="opTime">
+            <option value="1">Next day (1)</option>
+            <option value="0">Same day (0)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Machine:</label>
+        <select id="machineType">
+            <option value="1">New (1)</option>
+            <option value="0">Old (0)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Regression / CI:</label>
+        <select id="mode">
+            <option value="95">95% CI</option>
+            <option value="90">90% CI</option>
+            <option value="80">80% CI</option>
+            <option value="quantile">Quantile</option>
+        </select>
+    </div>
+
+    <button id="calcBtn" class="btn" onclick="calculate()">Calculate Result</button>
+
+    <div id="result" class="result-box">
+        <div class="result-item">Predicted value: <span id="meanVal" class="val">-</span></div>
+        <div class="result-item" id="lowerLabel">Lower Limit: <span id="lowerVal" class="val">-</span></div>
+    </div>
+</div>
+
+<script>
+    function calculate() {
+        const V = parseFloat(document.getElementById('maxValue').value);
+        const T = parseFloat(document.getElementById('opTime').value);
+        const M = parseFloat(document.getElementById('machineType').value);
+        const mode = document.getElementById('mode').value;
+        const btn = document.getElementById('calcBtn'); // 取得按鈕元件
+
+        // 驗證邏輯
+        if (isNaN(V) || V <= 100 || V > 74800) {
+            alert("Please enter a valid value (101 - 74800)");
+            return;
+        }
+
+        let mean, lower, zScore;
+        const lnV = Math.log(V);
+
+        if (mode === "quantile") {
+            lower = Math.exp(0.5404 + 0.9266 * lnV + (-0.6611 * T) + 0.4296 * M);
+            mean = Math.exp(1.9584 + 0.9347 * lnV + (-1.023 * T) + 0.1833 * M);
+            document.getElementById('lowerLabel').innerHTML = "Quantile Lower Limit: <span id='lowerVal' class='val'>-</span>";
+        } else {
+            if (mode === "95") zScore = 1.96;
+            else if (mode === "90") zScore = 1.645;
+            else if (mode === "80") zScore = 1.28;
+
+            mean = Math.exp(1.96017 + lnV * 0.91657 + (T * -0.94008) + (M * 0.24254));
+            lower = Math.exp(1.96017 + lnV * 0.91657 + (T * -0.94008) + (M * 0.24254) - (zScore * 0.65491));
+            document.getElementById('lowerLabel').innerHTML = mode + "% CI Lower Limit: <span id='lowerVal' class='val'>-</span>";
+        }
+
+        // 顯示結果
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('meanVal').innerText = mean.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('lowerVal').innerText = lower.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        // 核心邏輯：計算完成後修改按鈕文字
+        btn.innerText = "Update Result";
+    }
+</script>
+
+</body>
+</html>
