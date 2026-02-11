@@ -25,19 +25,21 @@
             border: 1px solid #d1e3f8;
             text-align: center;
         }
-        .result-main { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px; }
-        .result-card { flex: 1; min-width: 150px; padding: 5px; }
+        .result-main { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px; }
+        .result-card { flex: 1; min-width: 180px; padding: 5px; }
         
-        /* 數值再次縮小，設定為更平衡的 1.6em */
+        /* 數值縮小至 1em */
         .val-display { 
-            display: block; 
-            font-size: 0.8em; 
+            display: inline-block; 
+            font-size: 1em; 
             font-weight: 700; 
-            margin: 2px 0; 
+            margin-left: 5px;
         }
         .predict-color { color: #2ecc71; } 
         .lower-color { color: #e67e22; }   
         
+        .result-label { color:#7f8c8d; font-size:0.9em; font-weight:bold; display: inline-block; }
+
         .chart-container { position: relative; height: 400px; width: 100%; margin-top: 30px; }
     </style>
 </head>
@@ -84,11 +86,11 @@
     <div id="result">
         <div class="result-main">
             <div class="result-card">
-                <div style="color:#7f8c8d; font-size:0.8em; font-weight:bold;">PREDICTED VALUE</div>
+                <span class="result-label">PREDICTED VALUE:</span>
                 <span id="meanVal" class="val-display predict-color">-</span>
             </div>
             <div class="result-card">
-                <div id="lowerLabel" style="color:#7f8c8d; font-size:0.8em; font-weight:bold;">LOWER LIMIT</div>
+                <span id="lowerLabel" class="result-label">LOWER LIMIT:</span>
                 <span id="lowerVal" class="val-display lower-color">-</span>
             </div>
         </div>
@@ -123,12 +125,12 @@
         let finalMean, finalLower;
         if (mode === "quantile") {
             finalMean = Math.round(qMean); finalLower = Math.round(qLower);
-            document.getElementById('lowerLabel').innerText = "QUANTILE LOWER LIMIT";
+            document.getElementById('lowerLabel').innerText = "QUANTILE LOWER LIMIT:";
         } else {
             finalMean = Math.round(predMean);
             const zScores = {"97.5": 1.96, "95": 1.645, "92.5": 1.44, "90": 1.28};
             finalLower = Math.round(getLower(zScores[mode]));
-            document.getElementById('lowerLabel').innerText = mode + "% CI LOWER LIMIT";
+            document.getElementById('lowerLabel').innerText = mode + "% CI LOWER LIMIT:";
         }
 
         document.getElementById('result').style.display = 'block';
@@ -191,8 +193,7 @@
                         beginAtZero: false,
                         grace: '15%', 
                         ticks: { callback: v => v.toLocaleString(), font: { size: 10 } }
-                    },
-                    x: { ticks: { font: { size: 11 } } }
+                    }
                 }
             }
         });
