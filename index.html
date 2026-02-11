@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COUNT CALCULATOR - Data Labeled</title>
+    <title>COUNT CALCULATOR</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <style>
@@ -93,7 +93,6 @@
 </div>
 
 <script>
-    // 註冊 DataLabels 插件
     Chart.register(ChartDataLabels);
     let myChart = null;
 
@@ -150,7 +149,7 @@
                     {
                         label: 'Predicted Value',
                         data: meanData,
-                        borderColor: '#2ecc71',
+                        borderColor: '#2ecc71', // 綠色實線
                         borderWidth: 3,
                         pointRadius: 5,
                         fill: false,
@@ -183,7 +182,7 @@
                 scales: {
                     y: { 
                         beginAtZero: false,
-                        grace: '10%', // 增加上方空間避免標籤被切掉
+                        grace: '15%', 
                         ticks: { callback: v => v.toLocaleString() }
                     }
                 }
