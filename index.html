@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COUNT CALCULATOR - Data Labeled</title>
+    <title>COUNT CALCULATOR</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <style>
@@ -18,16 +18,17 @@
         
         #result { 
             margin-top: 25px; 
-            padding: 25px; 
-            border-radius: 12px; 
+            padding: 15px; 
+            border-radius: 8px; 
             display: none; 
-            background-color: #fff; 
-            border: 2px solid #3498db;
+            background-color: #f8fbfe; 
+            border: 1px solid #d1e3f8;
             text-align: center;
         }
-        .result-main { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px; }
-        .result-card { flex: 1; min-width: 200px; padding: 15px; border-radius: 10px; background: #fcfcfc; }
-/* 數值縮小至 1em */
+        .result-main { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px; }
+        .result-card { flex: 1; min-width: 180px; padding: 5px; }
+        
+        /* 數值縮小至 1em */
         .val-display { 
             display: inline-block; 
             font-size: 1em; 
@@ -80,17 +81,17 @@
         </select>
     </div>
 
-    <button id="calcBtn" class="btn" onclick="calculate()">Calculate Labels</button>
+    <button id="calcBtn" class="btn" onclick="calculate()">Calculate</button>
 
     <div id="result">
         <div class="result-main">
-            <div class="result-card" style="border-top: 5px solid #2ecc71;">
-                <div style="color:#7f8c8d; font-size:0.9em;">PREDICTED VALUE</div>
-                <span id="meanVal" class="val-large predict-color">-</span>
+            <div class="result-card">
+                <span class="result-label">PREDICTED VALUE:</span>
+                <span id="meanVal" class="val-display predict-color">-</span>
             </div>
-            <div class="result-card" style="border-top: 5px solid #e67e22;">
-                <div id="lowerLabel" style="color:#7f8c8d; font-size:0.9em;">LOWER LIMIT</div>
-                <span id="lowerVal" class="val-large lower-color">-</span>
+            <div class="result-card">
+                <span id="lowerLabel" class="result-label">LOWER LIMIT:</span>
+                <span id="lowerVal" class="val-display lower-color">-</span>
             </div>
         </div>
     </div>
@@ -101,7 +102,6 @@
 </div>
 
 <script>
-    // 註冊 DataLabels 插件
     Chart.register(ChartDataLabels);
     let myChart = null;
 
@@ -125,12 +125,12 @@
         let finalMean, finalLower;
         if (mode === "quantile") {
             finalMean = Math.round(qMean); finalLower = Math.round(qLower);
-            document.getElementById('lowerLabel').innerText = "Quantile Lower Limit";
+            document.getElementById('lowerLabel').innerText = "QUANTILE LOWER LIMIT:";
         } else {
             finalMean = Math.round(predMean);
             const zScores = {"97.5": 1.96, "95": 1.645, "92.5": 1.44, "90": 1.28};
             finalLower = Math.round(getLower(zScores[mode]));
-            document.getElementById('lowerLabel').innerText = mode + "% CI Lower Limit";
+            document.getElementById('lowerLabel').innerText = mode + "% CI LOWER LIMIT:";
         }
 
         document.getElementById('result').style.display = 'block';
@@ -161,9 +161,9 @@
                         borderColor: '#2ecc71',
                         borderWidth: 3,
                         pointRadius: 5,
-                        fill: false,
+                        fill: no,
                         tension: 0,
-                        datalabels: { align: 'top', color: '#27ae60', font: { weight: 'bold' } }
+                        datalabels: { align: 'top', offset: 5, color: '#27ae60', font: { weight: 'bold', size: 11 } }
                     },
                     {
                         label: 'Lower Limit',
@@ -171,10 +171,10 @@
                         borderColor: '#3498db',
                         backgroundColor: 'rgba(52, 152, 219, 0.1)',
                         pointBackgroundColor: labels.map(l => isSelected(l) ? '#e67e22' : '#3498db'),
-                        pointRadius: labels.map(l => isSelected(l) ? 10 : 5),
+                        pointRadius: labels.map(l => isSelected(l) ? 8 : 5),
                         fill: true,
                         tension: 0.3,
-                        datalabels: { align: 'bottom', color: '#2980b9', font: { weight: 'bold' }, offset: 10 }
+                        datalabels: { align: 'bottom', offset: 10, color: '#2980b9', font: { weight: 'bold', size: 11 } }
                     }
                 ]
             },
@@ -186,13 +186,13 @@
                         formatter: (value) => value.toLocaleString(),
                         display: true
                     },
-                    legend: { position: 'bottom' }
+                    legend: { position: 'bottom', labels: { boxWidth: 12 } }
                 },
                 scales: {
                     y: { 
                         beginAtZero: false,
-                        grace: '10%', // 增加上方空間避免標籤被切掉
-                        ticks: { callback: v => v.toLocaleString() }
+                        grace: '15%', 
+                        ticks: { callback: v => v.toLocaleString(), font: { size: 10 } }
                     }
                 }
             }
