@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COUNT CALCULATOR</title>
+    <title>COUNT CALCULATOR - Data Labeled</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <style>
@@ -27,11 +27,19 @@
         }
         .result-main { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px; }
         .result-card { flex: 1; min-width: 200px; padding: 15px; border-radius: 10px; background: #fcfcfc; }
-        .val-large { display: block; font-size: 3.5em; font-weight: 800; margin: 10px 0; }
+/* 數值縮小至 1em */
+        .val-display { 
+            display: inline-block; 
+            font-size: 1em; 
+            font-weight: 700; 
+            margin-left: 5px;
+        }
         .predict-color { color: #2ecc71; } 
         .lower-color { color: #e67e22; }   
         
-        .chart-container { position: relative; height: 450px; width: 100%; margin-top: 30px; }
+        .result-label { color:#7f8c8d; font-size:0.9em; font-weight:bold; display: inline-block; }
+
+        .chart-container { position: relative; height: 400px; width: 100%; margin-top: 30px; }
     </style>
 </head>
 <body>
@@ -72,7 +80,7 @@
         </select>
     </div>
 
-    <button id="calcBtn" class="btn" onclick="calculate()">Calculate</button>
+    <button id="calcBtn" class="btn" onclick="calculate()">Calculate Labels</button>
 
     <div id="result">
         <div class="result-main">
@@ -93,6 +101,7 @@
 </div>
 
 <script>
+    // 註冊 DataLabels 插件
     Chart.register(ChartDataLabels);
     let myChart = null;
 
@@ -149,10 +158,10 @@
                     {
                         label: 'Predicted Value',
                         data: meanData,
-                        borderColor: '#2ecc71', // 綠色實線
+                        borderColor: '#2ecc71',
                         borderWidth: 3,
                         pointRadius: 5,
-                        fill: no,
+                        fill: false,
                         tension: 0,
                         datalabels: { align: 'top', color: '#27ae60', font: { weight: 'bold' } }
                     },
@@ -182,7 +191,7 @@
                 scales: {
                     y: { 
                         beginAtZero: false,
-                        grace: '15%', 
+                        grace: '10%', // 增加上方空間避免標籤被切掉
                         ticks: { callback: v => v.toLocaleString() }
                     }
                 }
