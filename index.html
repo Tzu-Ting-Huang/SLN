@@ -3,54 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COUNT CALCULATOR</title>
+    <title>COUNT CALCULATOR - Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f7f9; color: #333; line-height: 1.6; padding: 20px; }
-        .container { max-width: 850px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         h2 { color: #2c3e50; text-align: center; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: #444; }
-        input[type="number"], select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        input[type="number"], input[type="text"], select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         .btn { width: 100%; background-color: #3498db; color: white; padding: 14px; border: none; border-radius: 6px; font-size: 18px; cursor: pointer; transition: background 0.3s; margin-bottom: 20px; }
         .btn:hover { background-color: #2980b9; }
+        .btn-excel { background-color: #27ae60; margin-top: 10px; font-size: 14px; padding: 10px; }
         
-        #result { 
-            margin-top: 25px; 
-            padding: 15px; 
-            border-radius: 8px; 
-            display: none; 
-            background-color: #f8fbfe; 
-            border: 1px solid #d1e3f8;
-            text-align: center;
-        }
+        /* 登錄畫面樣式 */
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .login-box { background: white; padding: 40px; border-radius: 12px; width: 350px; text-align: center; }
+        
+        #result { margin-top: 25px; padding: 15px; border-radius: 8px; display: none; background-color: #f8fbfe; border: 1px solid #d1e3f8; text-align: center; }
         .result-main { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px; }
         .result-card { flex: 1; min-width: 180px; padding: 5px; }
-        
-        /* 數值縮小至 1em */
-        .val-display { 
-            display: inline-block; 
-            font-size: 1em; 
-            font-weight: 700; 
-            margin-left: 5px;
-        }
+        .val-display { display: inline-block; font-size: 1em; font-weight: 700; margin-left: 5px; }
         .predict-color { color: #2ecc71; } 
-        .lower-color { color: #e67e22; }   
-        
+        .lower-color { color: #e67e22; }  
         .result-label { color:#7f8c8d; font-size:0.9em; font-weight:bold; display: inline-block; }
 
-        .chart-container { position: relative; height: 400px; width: 100%; margin-top: 30px; }
+        /* 表格樣式 */
+        .history-section { margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background-color: #f8f9fa; }
+        .btn-del { background: #e74c3c; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; }
+        .user-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #eef2f7; padding: 10px 20px; border-radius: 6px; }
+
+        .chart-container { position: relative; height: 350px; width: 100%; margin-top: 30px; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div id="loginOverlay">
+    <div class="login-box">
+        <h3>User Login</h3>
+        <p>Please enter your account name</p>
+        <input type="text" id="loginUser" placeholder="Account Name" style="margin-bottom: 20px;">
+        <button class="btn" onclick="login()">Login</button>
+    </div>
+</div>
+
+<div class="container" id="mainContent" style="display:none;">
+    <div class="user-info">
+        <span>Current User: <strong id="currentUserDisplay"></strong></span>
+        <button onclick="logout()" style="cursor:pointer; border:none; background:none; color:#3498db; text-decoration:underline;">Logout</button>
+    </div>
+
     <h2>COUNT CALCULATOR</h2>
-    
+
+    <div class="form-group">
+        <label>CHART_NO: <span style="font-weight:normal; color:#7f8c8d;">(8 digits only)</span></label>
+        <input type="text" id="chartNo" placeholder="e.g. 12345678" maxlength="8">
+    </div>
+
     <div class="form-group">
         <label>Mapping Max Value: <span style="font-weight:normal; color:#7f8c8d;">(102 - 74800)</span></label>
-        <input type="number" id="maxValue" placeholder=" Please enter a value between 102 and 74800" step="any" min="102" max="74800">
+        <input type="number" id="maxValue" placeholder="Between 102 and 74800" step="any">
     </div>
 
     <div style="display: flex; gap: 15px;">
@@ -81,7 +98,12 @@
         </select>
     </div>
 
-    <button id="calcBtn" class="btn" onclick="calculate()">Calculate</button>
+    <div class="form-group">
+        <label>Actual Observed Count: <span style="font-weight:normal; color:#7f8c8d;">(Positive integer)</span></label>
+        <input type="text" id="actualCount" placeholder="Observed value">
+    </div>
+
+    <button id="calcBtn" class="btn" onclick="calculate()">Calculate & Record</button>
 
     <div id="result">
         <div class="result-main">
@@ -99,23 +121,82 @@
     <div class="chart-container">
         <canvas id="regressionChart"></canvas>
     </div>
+
+    <div class="history-section">
+        <div style="display:flex; justify-content: space-between; align-items: center;">
+            <h3>Calculation History</h3>
+            <button class="btn btn-excel" style="width:auto;" onclick="exportToExcel()">Export to Excel</button>
+        </div>
+        <div style="overflow-x:auto;">
+            <table id="historyTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>User</th>
+                        <th>CHART_NO</th>
+                        <th>Mapping</th>
+                        <th>Machine</th>
+                        <th>Duration</th>
+                        <th>Predict</th>
+                        <th>Lower</th>
+                        <th>Actual</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
     Chart.register(ChartDataLabels);
     let myChart = null;
+    let currentUser = "";
 
+    // --- 登錄功能 ---
+    function login() {
+        const user = document.getElementById('loginUser').value.trim();
+        if(!user) { alert("Please enter account name"); return; }
+        currentUser = user;
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        document.getElementById('currentUserDisplay').innerText = currentUser;
+        loadHistory();
+    }
+
+    function logout() {
+        location.reload();
+    }
+
+    // --- 計算與驗證功能 ---
     function calculate() {
+        const chartNo = document.getElementById('chartNo').value.trim();
         const V = parseFloat(document.getElementById('maxValue').value);
         const T = parseFloat(document.getElementById('opTime').value);
         const M = parseFloat(document.getElementById('machineType').value);
         const mode = document.getElementById('mode').value;
+        const actual = document.getElementById('actualCount').value.trim();
 
-        if (isNaN(V) || V < 102 || V > 74800) {
-            alert("Please enter a valid value (102 - 74800)");
+        // 驗證 CHART_NO (8碼數字)
+        if (!/^\d{8}$/.test(chartNo)) {
+            alert("CHART_NO must be exactly 8 digits.");
             return;
         }
 
+        // 驗證 Mapping Value
+        if (isNaN(V) || V < 102 || V > 74800) {
+            alert("Please enter a valid Mapping Max Value (102 - 74800)");
+            return;
+        }
+
+        // 驗證 Actual Count (正整數)
+        if (!/^\d+$/.test(actual) || parseInt(actual) <= 0) {
+            alert("Actual Observed Count must be a positive integer.");
+            return;
+        }
+
+        // 計算邏輯
         const lnV = Math.log(V);
         const getLower = (z) => Math.exp(1.96017 + lnV * 0.91657 + (T * -0.94008) + (M * 0.24254) - (z * 0.65491));
         const predMean = Math.exp(1.96017 + lnV * 0.91657 + (T * -0.94008) + (M * 0.24254));
@@ -137,19 +218,90 @@
         document.getElementById('meanVal').innerText = finalMean.toLocaleString();
         document.getElementById('lowerVal').innerText = finalLower.toLocaleString();
 
+        // 更新圖表
         const labels = ['90% CI', '92.5% CI', '95% CI', '97.5% CI', 'Quantile'];
         const meanData = [Math.round(predMean), Math.round(predMean), Math.round(predMean), Math.round(predMean), Math.round(qMean)];
         const lowerData = [Math.round(getLower(1.28)), Math.round(getLower(1.44)), Math.round(getLower(1.645)), Math.round(getLower(1.96)), Math.round(qLower)];
-
         updateChart(labels, meanData, lowerData, mode);
+
+        // 儲存紀錄
+        saveRecord({
+            date: new Date().toLocaleString(),
+            user: currentUser,
+            chartNo: chartNo,
+            mapping: V,
+            machine: M == 1 ? "New" : "Old",
+            duration: T == 1 ? "Next day" : "Same day",
+            predict: finalMean,
+            lower: finalLower,
+            actual: actual
+        });
     }
 
+    // --- 歷史紀錄邏輯 ---
+    function saveRecord(record) {
+        let history = JSON.parse(localStorage.getItem('calc_history') || "[]");
+        history.unshift(record); // 新的放前面
+        localStorage.setItem('calc_history', JSON.stringify(history));
+        loadHistory();
+    }
+
+    function loadHistory() {
+        const history = JSON.parse(localStorage.getItem('calc_history') || "[]");
+        const tbody = document.getElementById('historyBody');
+        tbody.innerHTML = "";
+
+        history.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            // 權限判斷：只有自已可以刪除自已的
+            const delBtn = item.user === currentUser 
+                ? `<button class="btn-del" onclick="deleteRecord(${index})">Delete</button>` 
+                : `<span style="color:#ccc">Locked</span>`;
+
+            tr.innerHTML = `
+                <td>${item.date}</td>
+                <td>${item.user}</td>
+                <td>${item.chartNo}</td>
+                <td>${item.mapping}</td>
+                <td>${item.machine}</td>
+                <td>${item.duration}</td>
+                <td>${item.predict}</td>
+                <td>${item.lower}</td>
+                <td>${item.actual}</td>
+                <td>${delBtn}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function deleteRecord(index) {
+        let history = JSON.parse(localStorage.getItem('calc_history') || "[]");
+        if(history[index].user !== currentUser) {
+            alert("Permission denied. You can only delete your own records.");
+            return;
+        }
+        if(confirm("Are you sure you want to delete this record?")) {
+            history.splice(index, 1);
+            localStorage.setItem('calc_history', JSON.stringify(history));
+            loadHistory();
+        }
+    }
+
+    function exportToExcel() {
+        const history = JSON.parse(localStorage.getItem('calc_history') || "[]");
+        if(history.length === 0) { alert("No data to export"); return; }
+        
+        const worksheet = XLSX.utils.json_to_sheet(history);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "History");
+        XLSX.writeFile(workbook, `Calculation_History_${new Date().getTime()}.xlsx`);
+    }
+
+    // --- 原有圖表邏輯 ---
     function updateChart(labels, meanData, lowerData, currentMode) {
         const ctx = document.getElementById('regressionChart').getContext('2d');
         const isSelected = (l) => (l.includes(currentMode) || (currentMode==='quantile' && l==='Quantile'));
-
         if (myChart) myChart.destroy();
-
         myChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -159,11 +311,10 @@
                         label: 'Predicted Value',
                         data: meanData,
                         borderColor: '#2ecc71',
-                        borderWidth: 3,
-                        pointRadius: 5,
+                        borderWidth: 2,
                         fill: false,
                         tension: 0,
-                        datalabels: { align: 'top', offset: 5, color: '#27ae60', font: { weight: 'bold', size: 11 } }
+                        datalabels: { align: 'top' }
                     },
                     {
                         label: 'Lower Limit',
@@ -171,10 +322,10 @@
                         borderColor: '#3498db',
                         backgroundColor: 'rgba(52, 152, 219, 0.1)',
                         pointBackgroundColor: labels.map(l => isSelected(l) ? '#e67e22' : '#3498db'),
-                        pointRadius: labels.map(l => isSelected(l) ? 8 : 5),
+                        pointRadius: labels.map(l => isSelected(l) ? 8 : 4),
                         fill: true,
                         tension: 0.3,
-                        datalabels: { align: 'bottom', offset: 10, color: '#2980b9', font: { weight: 'bold', size: 11 } }
+                        datalabels: { align: 'bottom' }
                     }
                 ]
             },
@@ -182,18 +333,8 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    datalabels: {
-                        formatter: (value) => value.toLocaleString(),
-                        display: true
-                    },
-                    legend: { position: 'bottom', labels: { boxWidth: 12 } }
-                },
-                scales: {
-                    y: { 
-                        beginAtZero: false,
-                        grace: '15%', 
-                        ticks: { callback: v => v.toLocaleString(), font: { size: 10 } }
-                    }
+                    datalabels: { formatter: (value) => value.toLocaleString(), display: true },
+                    legend: { position: 'bottom' }
                 }
             }
         });
